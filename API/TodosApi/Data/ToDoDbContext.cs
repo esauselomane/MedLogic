@@ -2,10 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using TodosApi.Models;
 
-public class ToDoDbContext:DbContext
+namespace TodosApi.Data
 {
-    public ToDoDbContext(DbContextOptions<ToDoDbContext> options) : base(options) { }
+    public class TodoDbContext : DbContext
+    {
+        public TodoDbContext(DbContextOptions<TodoDbContext> options) : base(options) { }
 
-    public DbSet<User> Users { get; set; }
-    public DbSet<Todo> TodoItems { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Todo> TodoItems { get; set; }
+    }
 }
