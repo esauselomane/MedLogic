@@ -41,8 +41,17 @@ const TodoList = () => {
 
     const handleDelete = async (e, id) => {
         e.preventDefault();
+        try{
         await deleteTodo(id);
         setTodos((prev) => prev.filter((todo) => todo.id !== id));
+        }
+        catch(error)
+        {
+             if(error.response.status == 404)
+            {
+                toast.error('You are not authorized to edit this todo item or it cannot be found');
+            }
+        }
     };
 
     const handleToggle = async (todo) => {
@@ -69,16 +78,23 @@ const TodoList = () => {
     const saveEdit = async (e, todo) => {
         e.preventDefault();
         
-        const updated = await updateTodo(todo.id, todo);
-        setTodos((prev) =>
-            prev.map((t) => (t.id === todo.id ? updated : t))
-        );
-        setEditingId(null);
+        try{
+            const updated = await updateTodo(todo.id, todo);
+            setTodos((prev) =>
+                prev.map((t) => (t.id === todo.id ? updated : t))
+            );
+            setEditingId(null);
+        }catch(error)
+        {
+            if(error.response.status == 404)
+            {
+                toast.error('You are not authorized to edit this todo item or it cannot be found');
+            }
+        }
     };
 
     const AddTodo = async (e, todo) => {
         e.preventDefault();
-        debugger;
         const added = await createTodo(todo);
         setTodos([...todos, added]);
         setEditingId(null);

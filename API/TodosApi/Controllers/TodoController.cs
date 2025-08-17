@@ -2,6 +2,7 @@
 using Bogus;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Security.Claims;
 using TodosApi.Data;
@@ -38,9 +39,11 @@ public class TodoController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public IActionResult Get(int id)
+    public async Task<IActionResult> Get(int id)
     {
-        var todo = _context.TodoItems.Find(id);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+        var todo = await _context.TodoItems.Where(x => x.Id == id && x.UserId == userId).FirstOrDefaultAsync();
         var todoDTO = _mapper.Map<TodoViewModel>(todo);
         return todoDTO == null ? NotFound() : Ok(todoDTO);
     }
@@ -51,6 +54,7 @@ public class TodoController : ControllerBase
         var dbTodo = _mapper.Map<Todo>(item);
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         dbTodo.UserId = int.Parse(userId);
+
         dbTodo.CreatedDate = DateTime.Now;
         _context.TodoItems.Add(dbTodo);
         await _context.SaveChangesAsync();
@@ -60,7 +64,9 @@ public class TodoController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, TodoViewModel updated)
     {
-        var todo = _context.TodoItems.Find(id);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        var todo = await _context.TodoItems.Where(x => x.Id == id && x.UserId == userId).FirstOrDefaultAsync();
+
         if (todo == null) return NotFound();
 
         todo.Title = updated.Title;
@@ -74,7 +80,9 @@ public class TodoController : ControllerBase
     [HttpPatch("{id}")]
     public async Task<IActionResult> Patch(int id, [FromBody] bool isCompleted)
     {
-        var todo = _context.TodoItems.Find(id);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        var todo = await _context.TodoItems.Where(x => x.Id == id && x.UserId == userId).FirstOrDefaultAsync();
+
         if (todo == null) return NotFound();
 
         todo.IsCompleted = isCompleted;
@@ -86,7 +94,11 @@ public class TodoController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var todo = _context.TodoItems.Find(id);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        var todo = await _context.TodoItems.Where(x => x.Id == id && x.UserId == userId).FirstOrDefaultAsync();
+
+        //Would ideal use this, but need to ensure a person can only edit/add what they added
+        //var todo = _context.TodoItems.Find(id);
         if (todo == null) return NotFound();
 
         _context.TodoItems.Remove(todo);
