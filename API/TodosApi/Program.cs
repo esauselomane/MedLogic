@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Text;
 using TodosApi.Data;
+using TodosApi.Mappings;
 using TodosApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,9 +33,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddAutoMapper(config =>
+{
+    config.AddProfile<MappingProfile>();
+});
+
 var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
+
+
+app.UseCors(builder => builder
+     .AllowAnyOrigin()
+     .AllowAnyMethod()
+     .AllowAnyHeader());  
 
 app.UseAuthentication();
 app.UseAuthorization();
